@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Image } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { Button } from 'react-native-paper';
 import { Dropdown } from 'react-native-paper-dropdown';
+import { captureRef } from 'react-native-view-shot';
+import storage from '@react-native-firebase/storage';
+import QRCode from 'react-native-qrcode-svg';
 
 const DeviceDetail = ({ route, navigation }) => {
   const { deviceId } = route.params;
@@ -13,10 +16,14 @@ const DeviceDetail = ({ route, navigation }) => {
   const [departmentName, setDepartmentName] = useState('');
   const [departments, setDepartments] = useState([]);
   const [user, setUser] = useState('');  
-  const [users, setUsers] = useState('');  
+  const [users, setUsers] = useState([]);  
   const [specifications, setSpecifications] = useState({});
   const [note, setNote] = useState('');
   const [QR, setQR] = useState('');
+  const qrRef = useRef(null);
+  const [qrValue, setQrValue] = useState('');
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const fetchDepartments = async () => {
         try {
@@ -46,24 +53,7 @@ const DeviceDetail = ({ route, navigation }) => {
     fetchUsers();
     fetchDevice();
   }, [deviceId]);
-  const handleSave = async () => {
-    try {
-      await firestore().collection('DEVICES').doc(deviceId).update({
-        name,
-        type,
-        departmentName,
-        user,
-        specifications,
-        note
-      });
-      Alert.alert('Thông báo', 'Cập nhật thành công');
-      fetchDevice();
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Lỗi cập nhật: ', error);
-      Alert.alert('Thông báo', 'Cập nhật thất bại');
-    }
-  };
+
   const fetchDevice = async () => {
     try {
       const doc = await firestore().collection('DEVICES').doc(deviceId).get();
@@ -77,6 +67,7 @@ const DeviceDetail = ({ route, navigation }) => {
         setSpecifications(deviceData.specifications || {});
         setNote(deviceData.note || '');
         setQR(deviceData.image || '');
+        updateQRValue(deviceData);
       } else {
         console.log('Không có dữ liệu!');
       }
@@ -84,6 +75,74 @@ const DeviceDetail = ({ route, navigation }) => {
       console.error('Error fetching device: ', error);
     }
   };
+
+  const updateQRValue = (deviceData) => {
+    const qrData = {
+      id: deviceData.id,
+      name: deviceData.name,
+      user: deviceData.user,
+      type: deviceData.type,
+      specs: deviceData.specifications,
+      notes: deviceData.note,
+      department: deviceData.departmentName
+    };
+    const encodedData = encodeURIComponent(JSON.stringify(qrData));
+    const qrUrl = `https://book92.github.io/Lab1_P1/diviceinfo.html?data=${encodedData}`;
+    setQrValue(qrUrl);
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      const updatedDeviceData = {
+        name,
+        type,
+        departmentName,
+        user,
+        specifications,
+        note,
+      };
+
+      // Cập nhật thông tin thiết bị trong Firestore
+      await firestore().collection('DEVICES').doc(deviceId).update(updatedDeviceData);
+
+      // Tạo mã QR mới
+      updateQRValue({ id: deviceId, ...updatedDeviceData });
+
+      // Đợi một chút để đảm bảo QR code đã được cập nhật
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Chụp ảnh mã QR mới
+      const uri = await captureRef(qrRef.current, {
+        format: 'png',
+        quality: 1.0,
+      });
+
+      // Lưu mã QR mới vào Firebase Storage
+      const refImage = storage().ref(`/QR/${deviceId}_${Date.now()}.png`);
+      await refImage.putFile(uri);
+      const newQRLink = await refImage.getDownloadURL();
+
+      // Cập nhật link mã QR mới vào Firestore
+      await firestore().collection('DEVICES').doc(deviceId).update({
+        image: newQRLink,
+      });
+
+      // Cập nhật state local
+      setQR(newQRLink);
+      setDevice({ ...updatedDeviceData, image: newQRLink });
+
+      Alert.alert('Thông báo', 'Cập nhật thành công');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Lỗi cập nhật: ', error);
+      Alert.alert('Thông báo', 'Cập nhật thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCancel = () => {
     Alert.alert(
       'Thông báo',
@@ -205,10 +264,9 @@ const DeviceDetail = ({ route, navigation }) => {
         <Text style={[styles.value, { color: '#0000FF' }]}>{device.note}</Text>
       )}
       <Text style={styles.label}>QR:</Text>
-      <Image
-        source={{uri: QR}}
-        style={{height:200, width:200, alignSelf:'center'}}
-      />
+      <View ref={qrRef} collapsable={false} style={styles.qrContainer}>
+        <QRCode value={qrValue || ' '} size={200} />
+      </View>
       <View style={styles.buttonContainer}>
         {isEditing ? (
           <>
@@ -230,6 +288,7 @@ const DeviceDetail = ({ route, navigation }) => {
         </>  
         )}
       </View>
+      {loading && <ActivityIndicator size="large" color="#0000FF" />}
     </ScrollView>
   );
 };
@@ -302,7 +361,11 @@ const styles = StyleSheet.create({
   button:{
     backgroundColor:'#0000CD',
     margin:5
-}
+  },
+  qrContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
 });
 
 export default DeviceDetail;

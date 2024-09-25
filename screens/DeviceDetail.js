@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
-import { Button } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
 import { Dropdown } from 'react-native-paper-dropdown';
 import { captureRef } from 'react-native-view-shot';
 import storage from '@react-native-firebase/storage';
@@ -23,6 +23,9 @@ const DeviceDetail = ({ route, navigation }) => {
   const qrRef = useRef(null);
   const [qrValue, setQrValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [newSpecKey, setNewSpecKey] = useState('');
+  const [newSpecValue, setNewSpecValue] = useState('');
+  const [editingSpec, setEditingSpec] = useState(null);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -165,11 +168,43 @@ const DeviceDetail = ({ route, navigation }) => {
     );
   };
 
-  const handleSpecificationChange = (key, value) => {
-    setSpecifications(prevSpecs => ({
-      ...prevSpecs,
-      [key]: value
-    }));
+  const handleAddSpecification = () => {
+    if (newSpecKey && newSpecValue) {
+      setSpecifications(prevSpecs => ({
+        ...prevSpecs,
+        [newSpecKey]: newSpecValue,
+      }));
+      setNewSpecKey('');
+      setNewSpecValue('');
+    } else {
+      Alert.alert('Lỗi', 'Cả khóa và giá trị cho thông số kỹ thuật đều bắt buộc.');
+    }
+  };
+
+  const handleEditSpecification = (oldKey, oldValue) => {
+    setEditingSpec({ oldKey, key: oldKey, value: oldValue });
+  };
+
+  const handleUpdateSpecification = () => {
+    if (editingSpec) {
+      setSpecifications(prevSpecs => {
+        const newSpecs = { ...prevSpecs };
+        if (editingSpec.oldKey !== editingSpec.key) {
+          delete newSpecs[editingSpec.oldKey];
+        }
+        newSpecs[editingSpec.key] = editingSpec.value;
+        return newSpecs;
+      });
+      setEditingSpec(null);
+    }
+  };
+
+  const handleRemoveSpecification = (key) => {
+    setSpecifications(prevSpecs => {
+      const newSpecs = { ...prevSpecs };
+      delete newSpecs[key];
+      return newSpecs;
+    });
   };
 
   if (!device) {
@@ -226,29 +261,77 @@ const DeviceDetail = ({ route, navigation }) => {
       )}
       <View style={styles.fieldContainer}>
         <Text style={styles.label}>Thông số kỹ thuật:</Text>
-        {isEditing ? (
-          Object.keys(specifications).map((key) => (
-            <View key={key} style={styles.specificationContainer}>
-              <Text style={[styles.specificationLabel, { color: '#0000FF' }]}>{key}:</Text>
-              <TextInput
-                style={[styles.input, { color: '#0000FF' }]}
-                value={specifications[key]}
-                onChangeText={(value) => handleSpecificationChange(key, value)}
-              />
-            </View>
-          ))
-        ) : (
-          <View style={styles.specificationsContainer}>
-            {Object.entries(device.specifications || {}).length > 0 ? (
-              Object.entries(device.specifications).map(([key, value]) => (
-                <View key={key} style={styles.specificationItem}>
+        <View style={styles.specificationsContainer}>
+          {Object.entries(specifications).map(([key, value]) => (
+            <View key={key} style={styles.specificationItem}>
+              {editingSpec && editingSpec.oldKey === key ? (
+                <View style={styles.editSpecContainer}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginRight: 5 }]}
+                    value={editingSpec.key}
+                    onChangeText={(text) => setEditingSpec({ ...editingSpec, key: text })}
+                    placeholder="Thông số"
+                  />
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginRight: 5 }]}
+                    value={editingSpec.value}
+                    onChangeText={(text) => setEditingSpec({ ...editingSpec, value: text })}
+                    placeholder="Giá trị"
+                  />
+                  <IconButton
+                    icon="check"
+                    color="#0000FF"
+                    size={20}
+                    onPress={handleUpdateSpecification}
+                  />
+                </View>
+              ) : (
+                <>
                   <Text style={[styles.specificationKey, { color: '#0000FF' }]}>{key}:</Text>
                   <Text style={[styles.specificationValue, { color: '#0000FF' }]}>{value}</Text>
-                </View>
-              ))
-            ) : (
-              <Text style={{ color: '#0000FF' }}>Không có thông số kỹ thuật</Text>
-            )}
+                  {isEditing && (
+                    <View style={styles.specActionContainer}>
+                      <IconButton
+                        icon="pencil"
+                        color="#0000FF"
+                        size={20}
+                        onPress={() => handleEditSpecification(key, value)}
+                      />
+                      <IconButton
+                        icon="delete"
+                        color="#FF0000"
+                        size={20}
+                        onPress={() => handleRemoveSpecification(key)}
+                      />
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          ))}
+        </View>
+        {isEditing && (
+          <View style={styles.specInputContainer}>
+            <TextInput
+              style={styles.specInput}
+              value={newSpecKey}
+              onChangeText={setNewSpecKey}
+              placeholder="Thông số"
+              placeholderTextColor="#A9A9A9"
+            />
+            <TextInput
+              style={styles.specInput}
+              value={newSpecValue}
+              onChangeText={setNewSpecValue}
+              placeholder="Nhập thông số"
+              placeholderTextColor="#A9A9A9"
+            />
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={handleAddSpecification}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -270,22 +353,42 @@ const DeviceDetail = ({ route, navigation }) => {
       <View style={styles.buttonContainer}>
         {isEditing ? (
           <>
-            <Button mode='contained' onPress={handleSave} style={styles.button} labelStyle={{ color: '#FFFFFF' }}>
-                Lưu
+            <Button 
+              mode="contained" 
+              onPress={handleSave} 
+              style={styles.button}
+              labelStyle={styles.buttonText}
+            >
+              Lưu
             </Button>
-            <Button mode='contained' onPress={handleCancel} style={styles.button} labelStyle={{ color: '#FFFFFF' }}>
-                Hủy
+            <Button 
+              mode="contained" 
+              onPress={handleCancel} 
+              style={[styles.button, styles.cancelButton]}
+              labelStyle={styles.buttonText}
+            >
+              Hủy
             </Button>
           </>
         ) : (
-        <>
-            <Button mode='contained' onPress={() => setIsEditing(true)} style={styles.button} labelStyle={{ color: '#FFFFFF' }}>
-                Cập nhật
+          <>
+            <Button 
+              mode="contained" 
+              onPress={() => setIsEditing(true)} 
+              style={styles.button}
+              labelStyle={styles.buttonText}
+            >
+              Cập nhật
             </Button>
-            <Button mode='contained' style={styles.button} onPress={()=> navigation.navigate("Devices", {departmentName})} labelStyle={{ color: '#FFFFFF' }}>
-                Trở về
+            <Button 
+              mode="contained" 
+              onPress={() => navigation.navigate("Devices", {departmentName})} 
+              style={styles.button}
+              labelStyle={styles.buttonText}
+            >
+              Trở về
             </Button>
-        </>  
+          </>
         )}
       </View>
       {loading && <ActivityIndicator size="large" color="#0000FF" />}
@@ -342,8 +445,17 @@ const styles = StyleSheet.create({
   },
   specificationItem: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 5,
-    marginStart:10
+  },
+  specActionContainer: {
+    flexDirection: 'row',
+    marginLeft: 'auto',
+  },
+  editSpecContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   specificationKey: {
     fontWeight: 'bold',
@@ -355,16 +467,50 @@ const styles = StyleSheet.create({
     color: '#0000FF',
   },
   buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 20,
     marginBottom: 50,
   },
-  button:{
-    backgroundColor:'#0000CD',
-    margin:5
+  button: {
+    flex: 1,
+    marginHorizontal: 5,
+    backgroundColor: '#0000CD',
+  },
+  cancelButton: {
+    backgroundColor: '#FF6347',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   qrContainer: {
     alignItems: 'center',
     marginVertical: 10,
+  },
+  specInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  specInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#0000CD',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    color: '#000000',
+    marginRight: 5,
+  },
+  addButton: {
+    backgroundColor: '#0000CD',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

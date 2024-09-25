@@ -1,26 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, View, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
-import { IconButton, Text, Searchbar } from 'react-native-paper';
+import { Text, Searchbar } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 
+const BLUE_COLOR = '#0000CD';
+
 const CustomerItem = ({ avatar, fullname, phone, onPress }) => (
-  <View style={styles.customerContainer}>
-    <TouchableOpacity onPress={onPress} style={styles.customerInfo}>
-      <Image
-        source={avatar ? {uri: avatar} : require('../assets/user.png')}
-        style={styles.avatar}
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.customerName}>{fullname}</Text>
-        <Text style={styles.customerPhone}>{phone}</Text>
-      </View>
-    </TouchableOpacity>
-    <IconButton
-      icon="chevron-right"
-      size={24}
-      onPress={onPress}
+  <TouchableOpacity onPress={onPress} style={styles.customerItem}>
+    <Image
+      source={avatar ? {uri: avatar} : require('../assets/user.png')}
+      style={styles.avatar}
     />
-  </View>
+    <View style={styles.textContainer}>
+      <Text style={styles.customerName}>{fullname}</Text>
+      <Text style={styles.customerPhone}>{phone}</Text>
+    </View>
+  </TouchableOpacity>
 );
 
 const Customers = ({ navigation }) => {
@@ -66,22 +61,24 @@ const Customers = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={BLUE_COLOR} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Danh sách khách hàng</Text>
-      <View style={styles.searchContainer}>
-        <Searchbar
-          placeholder="Tìm kiếm..."
-          onChangeText={handleSearch}
-          value={searchQuery}
-          style={styles.searchBar}
-        />
-      </View>
+      <Text style={styles.title}>Danh sách người dùng</Text>
+      <Searchbar
+        placeholder="Tìm kiếm người dùng"
+        onChangeText={handleSearch}
+        value={searchQuery}
+        style={styles.searchBar}
+        inputStyle={styles.searchBarInput}
+        iconColor={BLUE_COLOR}
+        placeholderTextColor={BLUE_COLOR}
+        theme={{ colors: { primary: BLUE_COLOR } }}
+      />
       <FlatList
         data={filteredCustomers}
         keyExtractor={(item) => item.id}
@@ -101,37 +98,35 @@ const Customers = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
+    padding: 15,
+    backgroundColor: "white",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+    fontWeight: '400',
+    marginBottom: 16,
+    textAlign: "center",
+    color: BLUE_COLOR,
   },
   searchBar: {
-    flex: 1,
-  },
-  customerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 15,
     marginBottom: 10,
-    elevation: 2,
+    marginHorizontal: 10,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: BLUE_COLOR,
   },
-  customerInfo: {
-    flex: 1,
+  searchBarInput: {
+    color: BLUE_COLOR,
+    fontSize: 16,
+  },
+  customerItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: BLUE_COLOR,
   },
   avatar: {
     height: 50,
@@ -143,13 +138,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   customerName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+    color: BLUE_COLOR,
   },
   customerPhone: {
     fontSize: 14,
     color: 'gray',
-    marginTop: 5,
   },
   loadingContainer: {
     flex: 1,

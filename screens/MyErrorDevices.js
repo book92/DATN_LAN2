@@ -10,7 +10,7 @@ const Device = ({ name, state, dayfix, onPress }) => (
       <TouchableOpacity onPress={onPress} style={styles.deviceInfo}>
         <Text style={styles.deviceName}>{name}</Text>
         <Text style={styles.deviceStatus}>
-          {state === "Fixed" ? `Đã sửa: ${dayfix}` : "Chưa sửa"}
+          {state === "Fixed" ? `Đã sửa: ${dayfix}` : "Đã tiếp nhận"}
         </Text>
       </TouchableOpacity>
       <IconButton

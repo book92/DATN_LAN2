@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, View, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { IconButton, Text } from 'react-native-paper';
+import { IconButton, Text, Searchbar } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 
 const BLUE_COLOR = '#0000CD';
@@ -29,6 +29,8 @@ const Department = ({ name, onPress, onEdit, onDelete }) => (
 
 const Departments = ({ navigation }) => {
   const [departments, setDepartments] = useState([]);
+  const [filteredDepartments, setFilteredDepartments] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const DEPARTMENTS = firestore().collection('DEPARTMENTS');
   const DEVICES = firestore().collection('DEVICES');
   const USERS = firestore().collection('USERS');
@@ -44,10 +46,19 @@ const Departments = ({ navigation }) => {
         });
       });
       setDepartments(departmentlist);
+      setFilteredDepartments(departmentlist);
     });
 
     return () => unsubscribe();
   }, []);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filtered = departments.filter(department =>
+      department.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredDepartments(filtered);
+  };
 
   const handleEdit = (id) => {
     navigation.navigate('EditDepartment', { id });
@@ -112,8 +123,18 @@ const Departments = ({ navigation }) => {
           onPress={() => navigation.navigate('AddDepartment')}
         />
       </View>
+      <Searchbar
+        placeholder="Tìm kiếm phòng"
+        onChangeText={handleSearch}
+        value={searchQuery}
+        style={styles.searchBar}
+        inputStyle={styles.searchBarInput}
+        iconColor={BLUE_COLOR}
+        placeholderTextColor={BLUE_COLOR}
+        theme={{ colors: { primary: BLUE_COLOR } }}
+      />
       <FlatList
-        data={departments}
+        data={filteredDepartments}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Department
@@ -161,6 +182,16 @@ const styles = StyleSheet.create({
   iconButton: {
     borderWidth: 1,
     borderColor: BLUE_COLOR,
+  },
+  searchBar: {
+    marginBottom: 10,
+    marginHorizontal: 10,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: BLUE_COLOR,
+  },
+  searchBarInput: {
+    color: BLUE_COLOR,
   },
 });
 

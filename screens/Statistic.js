@@ -110,7 +110,25 @@ const Statistic = () => {
     });
   }, [searchQuery, roomCountsUser, roomCountsDevice, userCount, errorCount]);
 
-  const onChangeSearch = query => setSearchQuery(query);
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filterAndSortData = (data) => {
+      const lowercaseQuery = query.toLowerCase();
+      const filteredData = Object.entries(data).filter(([key]) =>
+        key.toLowerCase().includes(lowercaseQuery)
+      );
+      return Object.fromEntries(
+        filteredData.sort(([, a], [, b]) => b - a)
+      );
+    };
+
+    setFilteredData({
+      roomCountsUser: filterAndSortData(roomCountsUser),
+      roomCountsDevice: filterAndSortData(roomCountsDevice),
+      userCount: filterAndSortData(userCount),
+      errorCount: filterAndSortData(errorCount),
+    });
+  };
 
   const wrapLabel = (label, maxWidth) => {
     const words = label.split(' ');
@@ -194,12 +212,13 @@ const Statistic = () => {
     <ScrollView style={styles.container}>
       <Searchbar
         placeholder="Tìm kiếm"
-        onChangeText={onChangeSearch}
+        onChangeText={handleSearch}
         value={searchQuery}
         style={styles.searchBar}
         inputStyle={styles.searchBarInput}
-        placeholderTextColor={BLUE_COLOR}
         iconColor={BLUE_COLOR}
+        placeholderTextColor={BLUE_COLOR}
+        theme={{ colors: { primary: BLUE_COLOR } }}
       />
       {renderChart(dataErrorDevice, "Thống kê lỗi theo thiết bị")}
       {renderChart(dataRoomCountsUser, "Thống kê người dùng theo phòng")}
@@ -233,16 +252,14 @@ const styles = StyleSheet.create({
     color: BLUE_COLOR,
   },
   searchBar: {
-    marginBottom: 20,
+    marginBottom: 10,
     marginHorizontal: 10,
-    backgroundColor: '#fff',
-    borderWidth: 1,  
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
     borderColor: BLUE_COLOR,
-    borderRadius: 10, 
-    elevation: 2, 
   },
   searchBarInput: {
-    color: BLUE_COLOR, // Đổi màu chữ thành xanh dương
+    color: BLUE_COLOR,
   },
   titleText: {
     fontSize: 20,

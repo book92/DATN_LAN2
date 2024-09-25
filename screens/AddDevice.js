@@ -6,6 +6,7 @@ import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import { captureRef } from 'react-native-view-shot';
 import { Dropdown } from 'react-native-paper-dropdown';
+import { IconButton, Button } from 'react-native-paper';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyApBWUABXIusWxrlvdBt9ttvTd0uSISTQY',
@@ -29,7 +30,7 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
   const [deviceUser, setDeviceUser] = useState('');
   const [deviceType, setDeviceType] = useState('');
   const [users, setUsers] = useState([]);
-  const [deviceSpecs, setDeviceSpecs] = useState('');
+  const [deviceSpecs, setDeviceSpecs] = useState({});
   const [deviceNotes, setDeviceNotes] = useState('');
   const [newSpecKey, setNewSpecKey] = useState('');
   const [newSpecValue, setNewSpecValue] = useState('');
@@ -37,6 +38,7 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
   const qrRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [deviceTypes, setDeviceTypes] = useState([]);
+  const [editingSpec, setEditingSpec] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -93,6 +95,34 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
     } else {
       Alert.alert('Lỗi', 'Cả khóa và giá trị cho thông số kỹ thuật đều bắt buộc.');
     }
+  };
+
+  const handleEditSpecification = (key, value) => {
+    setEditingSpec({ key, value });
+    setNewSpecKey(key);
+    setNewSpecValue(value);
+  };
+
+  const handleUpdateSpecification = () => {
+    if (editingSpec && newSpecKey && newSpecValue) {
+      setDeviceSpecs((prevSpecs) => {
+        const updatedSpecs = { ...prevSpecs };
+        delete updatedSpecs[editingSpec.key];
+        updatedSpecs[newSpecKey] = newSpecValue;
+        return updatedSpecs;
+      });
+      setEditingSpec(null);
+      setNewSpecKey('');
+      setNewSpecValue('');
+    }
+  };
+
+  const handleRemoveSpecification = (key) => {
+    setDeviceSpecs((prevSpecs) => {
+      const updatedSpecs = { ...prevSpecs };
+      delete updatedSpecs[key];
+      return updatedSpecs;
+    });
   };
 
   const handleGenerateQR = async () => {
@@ -154,6 +184,25 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
     }
   };
 
+  const handleCancel = () => {
+    Alert.alert(
+      "Xác nhận hủy",
+      "Bạn có muốn hủy tạo thiết bị?",
+      [
+        {
+          text: "Hủy",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { 
+          text: "Xác nhận", 
+          onPress: () => navigation.goBack() 
+        }
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Thêm thiết bị</Text>
@@ -193,9 +242,23 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Thông số kỹ thuật</Text>
-        {Object.keys(deviceSpecs).map((key) => (
+        {Object.entries(deviceSpecs).map(([key, value]) => (
           <View key={key} style={styles.specContainer}>
-            <Text style={styles.specText}>{key}: {deviceSpecs[key]}</Text>
+            <Text style={styles.specText}>{key}: {value}</Text>
+            <View style={styles.specActionContainer}>
+              <IconButton
+                icon="pencil"
+                size={20}
+                color={BLUE_COLOR}
+                onPress={() => handleEditSpecification(key, value)}
+              />
+              <IconButton
+                icon="delete"
+                size={20}
+                color="#FF0000"
+                onPress={() => handleRemoveSpecification(key)}
+              />
+            </View>
           </View>
         ))}
         <View style={styles.specInputContainer}>
@@ -213,8 +276,11 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
             placeholder="Nhập thông số"
             placeholderTextColor="#A9A9A9"
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddSpecification}>
-            <Text style={styles.buttonText}>+</Text>
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={editingSpec ? handleUpdateSpecification : handleAddSpecification}
+          >
+            <Text style={styles.buttonText}>{editingSpec ? '✓' : '+'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -232,12 +298,22 @@ const AddDevice = ({ route = { params: {} }, navigation }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleGenerateQR}>
-          <Text style={styles.buttonText}>Tạo thiết bị</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Hủy</Text>
-        </TouchableOpacity>
+        <Button 
+          mode="contained" 
+          onPress={handleGenerateQR} 
+          style={styles.button}
+          labelStyle={styles.buttonText}
+        >
+          Tạo thiết bị
+        </Button>
+        <Button 
+          mode="contained" 
+          onPress={handleCancel}  // Thay đổi ở đây
+          style={[styles.button, styles.cancelButton]}
+          labelStyle={styles.buttonText}
+        >
+          Hủy
+        </Button>
       </View>
 
       {loading && <ActivityIndicator size="large" color={BLUE_COLOR} />}
@@ -286,6 +362,7 @@ const styles = StyleSheet.create({
   specContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
     backgroundColor: LIGHT_GRAY,
     borderRadius: 5,
@@ -294,6 +371,10 @@ const styles = StyleSheet.create({
   specText: {
     fontSize: 14,
     color: BLACK_COLOR,
+    flex: 1,
+  },
+  specActionContainer: {
+    flexDirection: 'row',
   },
   specInputContainer: {
     flexDirection: 'row',
@@ -325,14 +406,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
+    marginBottom: 50,
   },
   button: {
-    backgroundColor: BLUE_COLOR,
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
     flex: 1,
     marginHorizontal: 5,
+    backgroundColor: BLUE_COLOR,
   },
   cancelButton: {
     backgroundColor: '#FF6347',

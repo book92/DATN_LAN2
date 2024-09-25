@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Divider, IconButton } from 'react-native-paper';
+import { Divider, IconButton, Button, Searchbar } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 
 const BLUE_COLOR = '#0000CD';
@@ -8,6 +8,8 @@ const BLUE_COLOR = '#0000CD';
 const Devices = ({ navigation, route }) => {
   const { departmentId, departmentName } = route.params;
   const [devices, setDevices] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredDevices, setFilteredDevices] = useState({});
 
   useEffect(() => {
     const unsubscribe = firestore()
@@ -25,6 +27,7 @@ const Devices = ({ navigation, route }) => {
           });
 
           setDevices(deviceList);
+          setFilteredDevices(deviceList);
         },
         (error) => {
           console.error('Error fetching devices: ', error);
@@ -34,12 +37,30 @@ const Devices = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [departmentId]);
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredDevices(devices);
+    } else {
+      const filtered = {};
+      Object.keys(devices).forEach((type) => {
+        const filteredDevices = devices[type].filter((device) =>
+          device.name.toLowerCase().includes(query.toLowerCase())
+        );
+        if (filteredDevices.length > 0) {
+          filtered[type] = filteredDevices;
+        }
+      });
+      setFilteredDevices(filtered);
+    }
+  };
+
   const handleSelectDevice = (id) => {
     navigation.navigate('DeviceDetail', { deviceId: id, departmentName });
   };
 
-  const handleAddDevice = () => {
-    navigation.navigate('AddDevice', { departmentId });
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   return (
@@ -54,15 +75,25 @@ const Devices = ({ navigation, route }) => {
             onPress={() => navigation.navigate('AddDevice', {departmentName})}
           />
         </View>
-        {Object.keys(devices).length === 0 ? (
+        <Searchbar
+          placeholder="Tìm kiếm thiết bị"
+          onChangeText={handleSearch}
+          value={searchQuery}
+          style={styles.searchBar}
+          inputStyle={styles.searchBarInput}
+          iconColor={BLUE_COLOR}
+          placeholderTextColor={BLUE_COLOR}
+          theme={{ colors: { primary: BLUE_COLOR } }}
+        />
+        {Object.keys(filteredDevices).length === 0 ? (
           <Text style={styles.noDeviceText}>Không tìm thấy thiết bị</Text>
         ) : (
-          Object.keys(devices).map((type) => (
+          Object.keys(filteredDevices).map((type) => (
             <View key={type} style={styles.deviceTypeContainer}>
               <Text style={styles.deviceTypeTitle}>{type}</Text>
               <Divider bold style={styles.divider} />
               <FlatList
-                data={devices[type]}
+                data={filteredDevices[type]}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item, index }) => (
                   <View>
@@ -72,13 +103,23 @@ const Devices = ({ navigation, route }) => {
                     >
                       {item.name}
                     </Text>
-                    {index < devices[type].length - 1 && <Divider bold style={styles.itemDivider} />}
+                    {index < filteredDevices[type].length - 1 && <Divider bold style={styles.itemDivider} />}
                   </View>
                 )}
               />
             </View>
           ))
         )}
+        <View style={styles.buttonContainer}>
+          <Button 
+            mode="contained" 
+            onPress={handleGoBack}
+            style={styles.button}
+            labelStyle={styles.buttonText}
+          >
+            Trở về
+          </Button>
+        </View>
       </View>
     </ScrollView>
   );
@@ -135,6 +176,30 @@ const styles = StyleSheet.create({
   noDeviceText: {
     color: BLUE_COLOR,
     fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: BLUE_COLOR,
+    width: '100%',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  searchBar: {
+    marginBottom: 10,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: BLUE_COLOR,
+  },
+  searchBarInput: {
+    color: BLUE_COLOR,
   },
 });
 

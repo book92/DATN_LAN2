@@ -4,12 +4,14 @@ import { IconButton, Searchbar } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 
+const BLUE_COLOR = '#0000CD';
+
 const Device = ({ name, state, dayfix, onPress }) => (
   <View style={styles.deviceContainer}>
     <TouchableOpacity onPress={onPress} style={styles.deviceInfo}>
       <Text style={styles.deviceName}>{name}</Text>
       <Text style={styles.deviceStatus}>
-        {state === "Fixed" ? `Đã sửa: ${dayfix}` : "Chưa sửa"}
+        {state === "Fixed" ? `Đã sửa: ${dayfix}` : "Đã tiếp nhận"}
       </Text>
     </TouchableOpacity>
     <IconButton
@@ -63,14 +65,16 @@ const ErrorDevices = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Danh sách thiết bị lỗi</Text>
-      <View style={styles.searchContainer}>
-        <Searchbar
-          placeholder="Tìm kiếm..."
-          onChangeText={handleSearch}
-          value={searchQuery}
-          style={styles.searchBar}
-        />
-      </View>
+      <Searchbar
+        placeholder="Tìm kiếm thiết bị"
+        onChangeText={handleSearch}
+        value={searchQuery}
+        style={styles.searchBar}
+        inputStyle={styles.searchBarInput}
+        iconColor={BLUE_COLOR}
+        placeholderTextColor={BLUE_COLOR}
+        theme={{ colors: { primary: BLUE_COLOR } }}
+      />
       <FlatList
         data={filteredDevices}
         keyExtractor={(item) => item.id}
@@ -91,21 +95,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+    color: BLUE_COLOR,
   },
   searchBar: {
-    flex: 1,
+    marginBottom: 10,
+    marginHorizontal: 10,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: BLUE_COLOR,
+  },
+  searchBarInput: {
+    color: BLUE_COLOR,
   },
   deviceContainer: {
     flexDirection: 'row',
@@ -113,9 +120,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'white',
     borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: BLUE_COLOR,
     padding: 15,
-    marginBottom: 10,
-    elevation: 2,
+    margin: 10,
   },
   deviceInfo: {
     flex: 1,
@@ -123,10 +131,11 @@ const styles = StyleSheet.create({
   deviceName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: BLUE_COLOR,
   },
   deviceStatus: {
     fontSize: 14,
-    color: 'gray',
+    color: BLUE_COLOR,
     marginTop: 5,
   },
 });

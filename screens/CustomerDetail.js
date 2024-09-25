@@ -4,6 +4,8 @@ import { Button, Text, TextInput } from "react-native-paper"
 import { Dropdown } from "react-native-paper-dropdown";
 import firestore from '@react-native-firebase/firestore';
 
+const BLUE_COLOR = '#0000CD';
+
 const CustomerDetail = ({navigation, route}) =>{
     const {fullname, email, phone, address, avatar, department} = route.params;
     const [newfullname, setFullname] = useState(fullname);
@@ -46,8 +48,8 @@ const CustomerDetail = ({navigation, route}) =>{
     };
 
     return (
-      <View style={{ flex: 1,}}> 
-          <View style={{alignItems: "center" }}>
+      <View style={styles.container}> 
+          <View style={styles.formContainer}>
               <View style={styles.imageContainer}>
                   <Image
                   source={avatar ? { uri: avatar } : require("../assets/user.png")}
@@ -59,40 +61,59 @@ const CustomerDetail = ({navigation, route}) =>{
                   style={styles.input}
                   value={newfullname}
                   onChangeText={setFullname}
+                  theme={{ colors: { primary: BLUE_COLOR, text: 'black' } }}
+                  outlineColor={BLUE_COLOR}
+                  activeOutlineColor={BLUE_COLOR}
+                  mode="outlined"
               />
               <TextInput
                   label={"Email"}
                   style={[styles.input, styles.disabledInput]}
                   value={email}
                   editable={false}
+                  theme={{ colors: { primary: BLUE_COLOR, text: 'black' } }}
+                  outlineColor={BLUE_COLOR}
+                  activeOutlineColor={BLUE_COLOR}
+                  mode="outlined"
               />
               <TextInput
                   label={"Số điện thoại"}
                   style={styles.input}
                   value={newphone}
                   onChangeText={setPhone}
+                  theme={{ colors: { primary: BLUE_COLOR, text: 'black' } }}
+                  outlineColor={BLUE_COLOR}
+                  activeOutlineColor={BLUE_COLOR}
+                  mode="outlined"
               />
               <TextInput
                   label={"Địa chỉ"}
                   style={styles.input}
                   value={newaddress}
                   onChangeText={setAddress}
+                  theme={{ colors: { primary: BLUE_COLOR, text: 'black' } }}
+                  outlineColor={BLUE_COLOR}
+                  activeOutlineColor={BLUE_COLOR}
+                  mode="outlined"
               />
           </View>
-          <View style={{marginStart:20, marginEnd:20}}>
+          <View style={styles.dropdownContainer}>
               <Dropdown
                   label="Chọn phòng"
                   options={departments}
                   value={newdepartment}
                   onSelect={setDepartment}
                   mode="outlined"
+                  theme={{ colors: { primary: BLUE_COLOR, text: 'black' } }}
+                  outlineColor={BLUE_COLOR}
+                  activeOutlineColor={BLUE_COLOR}
               />
           </View>
-          <View style={{alignItems: "center", marginTop:10 }}>
-              <Button mode="contained" style={styles.button} onPress={handleUpdate}>
+          <View style={styles.buttonContainer}>
+              <Button mode="contained" style={styles.button} labelStyle={styles.buttonLabel} onPress={handleUpdate}>
                   Cập nhật
               </Button>
-              <Button mode="contained" style={styles.button} onPress={()=> navigation.navigate("Customers")}>
+              <Button mode="contained" style={styles.button} labelStyle={styles.buttonLabel} onPress={()=> navigation.navigate("Customers")}>
                   Quay lại
               </Button>
           </View>
@@ -103,6 +124,13 @@ const CustomerDetail = ({navigation, route}) =>{
 export default CustomerDetail;
     
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  formContainer: {
+    alignItems: "center",
+  },
   imageContainer: {
     position: "relative",
     width: 150,
@@ -113,24 +141,37 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderWidth: 2,
-    borderColor: "black",
+    borderColor: BLUE_COLOR,
     borderRadius: 75,
   },
   input: {
-    borderRadius: 10,
     width: "90%",
     margin: 5,
-    borderWidth: 0.5,
     backgroundColor: "white",
   },
   disabledInput: {
     backgroundColor: '#f0f0f0',
-    color: '#888',
+  },
+  dropdownContainer: {
+    marginHorizontal: 20,
+    marginVertical: 10,
+    
+  },
+  buttonContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
   button: {
-    width: "90%",
-    borderRadius: 10,
-    margin: 5,
-    backgroundColor: "#0000CD",
+    backgroundColor: BLUE_COLOR,
+    width: '100%',
+    marginVertical: 5,
+  },
+  buttonLabel: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

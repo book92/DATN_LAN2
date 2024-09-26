@@ -5,6 +5,7 @@ import firestore from '@react-native-firebase/firestore';
 import { useMyContextController } from '../store';
 import { IconButton, Searchbar, Menu } from 'react-native-paper';
 
+const BLUE_COLOR = '#0000CD';
 const Device = ({ name, state, dayfix, onPress }) => (
     <View style={styles.deviceContainer}>
       <TouchableOpacity onPress={onPress} style={styles.deviceInfo}>

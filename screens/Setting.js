@@ -60,6 +60,7 @@ const Setting = ({navigation}) => {
                     mode="contained"
                     style={styles.button}
                     onPress={()=> navigation.navigate("UpdateProfile")}
+                    textColor="white"
                 >
                     Cập nhật thông tin
                 </Button>
@@ -67,6 +68,7 @@ const Setting = ({navigation}) => {
                     mode="contained"
                     style={styles.button}
                     onPress={handleLogout}
+                    textColor="white"
                 >
                     Đăng xuất
                 </Button>
@@ -86,12 +88,14 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 20,
         margin:5,
-        fontWeight: "bold"
+        fontWeight: "bold",
+        color:"blue"
     },
     button: {
         width: "80%",
         borderRadius: 10,
         margin: 5,
         backgroundColor: "#0000CD"
+        
     }
 });

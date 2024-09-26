@@ -7,6 +7,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { useMyContextController } from "../store";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
+const BLUE_COLOR = '#0000CD';
 const UpdateProfile = ({ navigation }) => {
   const [controller, dispatch] = useMyContextController();
   const { userLogin } = controller;
@@ -107,37 +108,57 @@ const UpdateProfile = ({ navigation }) => {
                 style={styles.input}
                 value={fullname}
                 onChangeText={setFullname}
+                outlineColor={BLUE_COLOR}
+                activeOutlineColor={BLUE_COLOR}
+                mode="outlined"
+                textColor="black"
             />
             <TextInput
                 label={"Email"}
                 style={[styles.input, styles.disabledInput]}
                 value={email}
                 editable={false}
+                outlineColor={BLUE_COLOR}
+                activeOutlineColor={BLUE_COLOR}
+                mode="outlined"
+                textColor="black"
             />
             <TextInput
                 label={"Số điện thoại"}
                 style={styles.input}
                 value={phone}
                 onChangeText={setPhone}
+                outlineColor={BLUE_COLOR}
+                activeOutlineColor={BLUE_COLOR}
+                mode="outlined"
+                textColor="black"
             />
             <TextInput
                 label={"Địa chỉ"}
                 style={styles.input}
                 value={address}
                 onChangeText={setAddress}
+                outlineColor={BLUE_COLOR}
+                activeOutlineColor={BLUE_COLOR}
+                mode="outlined"
+                textColor="black"
             />
             <TextInput
                 label={"Phòng ban"}
                 style={[styles.input, styles.disabledInput]}
                 value={department}
                 editable={false}
+                outlineColor={BLUE_COLOR}
+                activeOutlineColor={BLUE_COLOR}
+                mode="outlined"
+                textColor="black"
             />
         </View>
         <View style={{alignItems: "center", marginTop:10 }}>
-            <Button mode="contained" style={styles.button} onPress={handleUpdate}>
+            <Button mode="contained" style={styles.button} labelStyle={styles.buttonLabel} onPress={handleUpdate}>
                 Cập nhật
             </Button>
-            <Button mode="contained" style={styles.button} onPress={()=> navigation.navigate("Setting")}>
+            <Button mode="contained" style={styles.button} labelStyle={styles.buttonLabel} onPress={()=> navigation.navigate("Setting")}>
                 Quay lại
             </Button>
         </View>
@@ -168,20 +189,21 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   input: {
-    borderRadius: 10,
     width: "90%",
     margin: 5,
-    borderWidth: 0.5,
     backgroundColor: "white",
-    color: 'black',
   },
   button: {
     width: "90%",
     borderRadius: 10,
     margin: 5,
-    backgroundColor: "#0000CD",
+    backgroundColor: "#0000CD"
   },
-  disabledInput: {
+  buttonLabel: {
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  disabledInput:{
     backgroundColor: '#f0f0f0',
   },
 });

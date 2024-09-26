@@ -1,191 +1,121 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView } from "react-native";
-import {TextInput} from "react-native-paper"
+import { StyleSheet, Text, View, ScrollView, Alert } from "react-native";
+import { TextInput, Button, HelperText } from "react-native-paper";
 import firestore from '@react-native-firebase/firestore';
-import { HelperText } from "react-native-paper";
 
+const BLUE_COLOR = '#0000CD';
 const ErrorDeviceDetail = ({ route, navigation }) => {
     const { item } = route.params;
-    const [description, setDescription] = React.useState('');
-    const [loading, setLoading] = React.useState(true);
-    const [rooms, setRooms] = React.useState([]);
-    const [error, setError] = React.useState('');
-    const [reportday, setReportday] = React.useState('');
-    const [userreport, setUserreport] = React.useState('');
-    const today = new Date();
-    
+    const [description, setDescription] = React.useState(item.description);
+    const [userreport, setUserreport] = React.useState(item.userreport);
+
     const handleUpdate = async () => {
         try {    
-          await firestore().collection("ERROR").doc(item.id).update({
-            state: "Fixed",
-            fixday: new Date().toString(),
-          });
-    
-          Alert.alert("Cập nhật thành công!");
-          navigation.goBack();
-        } catch (error) {
-          console.error("Error updating error device: ", error);
-          Alert.alert("Có lỗi xảy ra khi cập nhật!");
-        }
-      };
-
-    React.useEffect(() => {
-        const ERROR_COLLECTION = firestore().collection('ERROR');
-        const unsubscribe = ERROR_COLLECTION.onSnapshot((querySnapshot) => {
-            const list = [];
-            querySnapshot.forEach((doc) => {
-                const { deviceName, description } = doc.data();
-                list.push({
-                    id: doc.id,
-                    deviceName,
-                    reportday,
-                    userreport,
-                    description,
-                });
+            await firestore().collection("ERROR").doc(item.id).update({
+                state: "Fixed",
+                fixday: new Date().toString(),
             });
-            setRooms(list);
-            if (loading) {
-                setLoading(false);
-            }
-            setUserreport(item.userreport)
-            setDescription(item.description)
-        });
-        return unsubscribe;
-    }, [loading]);
+            Alert.alert("Cập nhật thành công!");
+            navigation.goBack();
+        } catch (error) {
+            console.error("Error updating error device: ", error);
+            Alert.alert("Có lỗi xảy ra khi cập nhật!");
+        }
+    };
 
     return (
         <ScrollView style={styles.container}>
+            <Text style={styles.title}>Danh sách thiết bị lỗi</Text>
             <View style={styles.inputContainer}>
-                <Text style={styles.title}>Báo Lỗi</Text>
-                <Text style={{marginBottom:5, fontSize:16}}>Tên thiết bị</Text>
+                {renderInput("Tên thiết bị", item.deviceName, true)}
+                {renderInput("Người báo lỗi", userreport, true)}
+                {renderInput("Ngày báo", item.reportday, true)}
+                {renderInput("Ngày sửa", item.fixday, true)}
+                {renderInput("Tình trạng", item.state, true)}
+                <Text style={{marginBottom:5, fontSize:18, color:"blue",fontWeight: 'bold',}}>Mô tả</Text>
                 <TextInput
-                    style={[styles.inputtenphong, styles.disabledInput]}
-                    value={item.deviceName}
-                    editable={false}
-                />
-                <Text style={{marginBottom:5, fontSize:16}}>Người báo lỗi</Text>
-                <TextInput
-                    style={[styles.inputtenphong, styles.disabledInput]}
-                    value={userreport}
-                    editable={false}
-                />
-                <Text style={{marginBottom:5, fontSize:16}}>Ngày báo</Text>
-                <TextInput
-                    style={[styles.inputtenphong, styles.disabledInput]}
-                    value={item.reportday}
-                    editable={false}
-                />
-                <Text style={{marginBottom:5, fontSize:16}}>Ngày sửa</Text>
-                <TextInput
-                    style={[styles.inputtenphong, styles.disabledInput]}
-                    value={item.fixday}
-                    editable={false}
-                />
-                <Text style={{marginBottom:5, fontSize:16}}>Tình trạng</Text>
-                <TextInput
-                    style={[styles.inputtenphong, styles.disabledInput]}
-                    value={item.state}
-                    editable={false}
-                />
-                <Text style={{marginBottom:5, fontSize:16}}>Mô tả</Text>
-                <TextInput
-                    style={{...styles.inputmota}}
+                    style={[styles.inputmota, { borderColor: '#4169E1',marginVertical: 5, borderWidth: 1, borderRadius: 5 }]}
                     multiline
                     value={description}
                     onChangeText={setDescription}
                     editable={false}
+                    backgroundColor="white"
+                    textColor="black"
                 />
-                {error ? <HelperText type="error" style={{fontSize:13}}>{error}</HelperText> : null}
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity onPress={handleUpdate} style={[styles.button, styles.addButton]}>
-                        <Text style={styles.buttonText}>Cập nhật</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.button}>
-                        <Text style={styles.buttonText}>Trở về</Text>
-                    </TouchableOpacity>
+                    <Button mode="contained" onPress={handleUpdate} style={styles.button} labelStyle={styles.buttonLabel}>
+                        Cập nhật
+                    </Button>
+                    <Button mode="contained" onPress={() => navigation.goBack()} style={[styles.button, styles.cancelButton]} labelStyle={styles.buttonLabel}>
+                        Trở về
+                    </Button>
                 </View>
             </View>
         </ScrollView>
     );
-}
+};
+
+const renderInput = (label, value, editable, multiline = false) => (
+    <>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+            style={[styles.input, multiline && styles.multilineInput]}
+            value={value}
+            editable={false}
+            multiline={multiline}
+            textColor="black"
+        />
+    </>
+);
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 15,
+        padding: 20,
         backgroundColor: "white",
     },
     title: {
         fontSize: 24,
-        fontWeight: '400',
+        fontWeight: 'bold',
         marginBottom: 16,
         textAlign: "center",
+        color: 'black',
     },
     inputContainer: {
         marginBottom: 20,
     },
-    disabledInput: {
-        backgroundColor: '#f4f4f4',
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 16,
+    label: {
+        fontSize: 18,
         fontWeight: 'bold',
+        marginTop: 10,
+        color: 'blue',
     },
-    inputtenphong: {
-        height: 50,
-        borderColor: "#ccc",
-        borderWidth: 1,
-        backgroundColor: "white",
-        marginBottom: 15,
+    input: {
         fontSize: 16,
-        borderRadius: 5,
-        paddingLeft: 10
-    },
-    inputmota: {
-        backgroundColor: "white",
-        marginBottom: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderRadius: 5,
         borderWidth: 1,
-        borderColor: "#ccc",
-        placeholderTextColor: "#777777",
-        multiline: true,
-        fontSize: 20,
+        borderColor: '#4169E1',  // Royal Blue
+        borderRadius: 5,
+        marginVertical: 5,
+        backgroundColor: '#FFFFFF',  // Change background to white
+    },
+    multilineInput: {
+        height: 100,
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    button: {
-        backgroundColor: '#21005d',
-        paddingVertical: 12,
-        borderRadius: 10,
-        alignItems: 'center',
-        width: '30%',
-        marginLeft: 10,
-    },
-    addButton: {
-        backgroundColor: '#21005d',
-    },
-    listContainer: {
+        justifyContent: 'space-between',
         marginTop: 20,
     },
-    roomItem: {
-        marginBottom: 10,
-        padding: 10,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: "#ccc",
+    button: {
+        flex: 1,
+        marginHorizontal: 5,
+        backgroundColor: '#0000FF',  // Blue
     },
-    roomName: {
-        fontSize: 16,
-        fontWeight: 'bold',
+    cancelButton: {
+        backgroundColor: '#FF0000',  // Red
     },
-    roomDescription: {
-        fontSize: 14,
-        color: '#888',
+    buttonLabel: {
+        color: 'white',  // Set button text color to white
     },
 });
 

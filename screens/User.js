@@ -53,7 +53,7 @@ const User = () =>{
         <Drawer.Navigator drawerContent={(props) => <CustomDrawer {...props}/>}>
             <Drawer.Screen name="RouterMyDevices" component={RouterMyDevices}
                 options={{
-                    drawerLabel: "THiết bị của tôi",
+                    drawerLabel: "Thiết bị của tôi",
                     headerTitle: "Thiết bị của tôi",
                     drawerIcon: ({ tintColor }) => (
                         <Image
@@ -65,7 +65,7 @@ const User = () =>{
             />
             <Drawer.Screen name="RouterMyErrorDevices" component={RouterMyErrorDevices}
                 options={{
-                    drawerLabel: "THiết bị lỗi của tôi",
+                    drawerLabel: "Thiết bị lỗi của tôi",
                     headerTitle: "Thiết bị lỗi của tôi",
                     drawerIcon: ({ tintColor }) => (
                         <Image

@@ -65,6 +65,7 @@ const CustomerDetail = ({navigation, route}) =>{
                   outlineColor={BLUE_COLOR}
                   activeOutlineColor={BLUE_COLOR}
                   mode="outlined"
+                  textColor="black"
               />
               <TextInput
                   label={"Email"}
@@ -75,6 +76,7 @@ const CustomerDetail = ({navigation, route}) =>{
                   outlineColor={BLUE_COLOR}
                   activeOutlineColor={BLUE_COLOR}
                   mode="outlined"
+                  textColor="black"
               />
               <TextInput
                   label={"Số điện thoại"}
@@ -85,6 +87,7 @@ const CustomerDetail = ({navigation, route}) =>{
                   outlineColor={BLUE_COLOR}
                   activeOutlineColor={BLUE_COLOR}
                   mode="outlined"
+                  textColor="black"
               />
               <TextInput
                   label={"Địa chỉ"}
@@ -95,6 +98,7 @@ const CustomerDetail = ({navigation, route}) =>{
                   outlineColor={BLUE_COLOR}
                   activeOutlineColor={BLUE_COLOR}
                   mode="outlined"
+                  textColor="black"
               />
           </View>
           <View style={styles.dropdownContainer}>

@@ -84,6 +84,9 @@ const MyErrorDevices = () => {
           onChangeText={handleSearch}
           value={searchQuery}
           style={styles.searchBar}
+          iconColor={BLUE_COLOR}
+          placeholderTextColor={BLUE_COLOR}
+          theme={{ colors: { primary: BLUE_COLOR } }}
         />
       </View>
       <FlatList
@@ -113,6 +116,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: BLUE_COLOR, // Updated to use BLUE_COLOR
   },
   searchContainer: {
     flexDirection: 'row',
@@ -120,7 +124,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   searchBar: {
-    flex: 1,
+    marginBottom: 10,
+    marginHorizontal: 10,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: BLUE_COLOR, // Updated to use BLUE_COLOR
   },
   deviceContainer: {
     flexDirection: 'row',
@@ -138,10 +146,11 @@ const styles = StyleSheet.create({
   deviceName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: BLUE_COLOR, // Updated to use BLUE_COLOR
   },
   deviceStatus: {
     fontSize: 14,
-    color: 'gray',
+    color: BLUE_COLOR, // Updated to use BLUE_COLOR
     marginTop: 5,
   },
 });

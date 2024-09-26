@@ -5,6 +5,8 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Divider, Searchbar } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+
 
 const firebaseConfig = {
   apiKey: 'AIzaSyApBWUABXIusWxrlvdBt9ttvTd0uSISTQY',
@@ -16,9 +18,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 
-const BLUE_COLOR = '#0000CD'; // Định nghĩa màu xanh dương
+const BLUE_COLOR = '#0000CD';
 
 const Statistic = () => {
+  const navigation = useNavigation(); // Initialize navigation
   const [roomCountsUser, setRoomCountsUser] = useState({});
   const [roomCountsDevice, setRoomCountsDevice] = useState({});
   const [userCount, setUserCount] = useState({});
@@ -168,6 +171,10 @@ const Statistic = () => {
   const dataDeviceRoom = createChartData(filteredData.roomCountsDevice);
   const dataDeviceUser = createChartData(filteredData.userCount, true);
 
+  const handleBarPress = (labels) => {
+    navigation.navigate('DeviceList', { labels });
+  };
+
   const renderChart = (data, title, isUserChart = false) => (
     <>
       <View style={styles.legendContainer}>
@@ -202,6 +209,7 @@ const Statistic = () => {
           }}
           fromZero={true}
           showValuesOnTopOfBars={true}
+          onDataPointClick={({ index }) => handleBarPress(data.labels[index])}
         />
       </ScrollView>
       <Divider bold />
